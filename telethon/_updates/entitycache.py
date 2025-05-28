@@ -45,12 +45,6 @@ class EntityCache:
             if getattr(c, 'access_hash', None) and not getattr(c, 'min', None)
         )
 
-    def get_all_entities(self):
-        entities = (v for v in self.hash_map.values() if not v.retained)
-        for entity in entities:
-            entity.retained = True
-        return entities
-
     def put(self, entity):
         self.hash_map[entity.id] = entity
 

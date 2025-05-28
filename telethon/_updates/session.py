@@ -2,7 +2,7 @@ import struct
 from typing import Optional, Tuple
 from enum import IntEnum
 from ..tl.types import InputPeerUser, InputPeerChat, InputPeerChannel
-
+import struct
 
 class SessionState:
     """
