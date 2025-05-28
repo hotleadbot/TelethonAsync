@@ -343,7 +343,7 @@ class UpdateMethods:
                     if updates:
                         self._log[__name__].info('Got difference for account updates')
 
-                    updates_to_dispatch.extend(self._preprocess_updates(updates, users, chats))
+                    updates_to_dispatch.extend(await self._preprocess_updates(updates, users, chats))
                     continue
 
                 get_diff = self._message_box.get_channel_difference(self._mb_entity_cache)
@@ -441,7 +441,7 @@ class UpdateMethods:
                     if updates:
                         self._log[__name__].info('Got difference for channel %d updates', get_diff.channel.channel_id)
 
-                    updates_to_dispatch.extend(self._preprocess_updates(updates, users, chats))
+                    updates_to_dispatch.extend(await self._preprocess_updates(updates, users, chats))
                     continue
 
                 deadline = self._message_box.check_deadlines()
@@ -462,7 +462,7 @@ class UpdateMethods:
                 except GapError:
                     continue  # get(_channel)_difference will start returning requests
 
-                updates_to_dispatch.extend(self._preprocess_updates(processed, users, chats))
+                updates_to_dispatch.extend(await self._preprocess_updates(processed, users, chats))
         except asyncio.CancelledError:
             pass
         except Exception as e:
@@ -470,9 +470,12 @@ class UpdateMethods:
             self._updates_error = e
             await self.disconnect()
 
-    def _preprocess_updates(self, updates, users, chats):
+    async def _preprocess_updates(self, updates, users, chats):
         self._mb_entity_cache.extend(users, chats)
-        self.session.process_entities(types.contacts.ResolvedPeer(None, users, chats))
+        process_entities = self.session.process_entities(types.contacts.ResolvedPeer(None, users, chats))
+        if inspect.isawaitable(process_entities):
+            await process_entities
+
         entities = {utils.get_peer_id(x): x
                     for x in itertools.chain(users, chats)}
         for u in updates:
