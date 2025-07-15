@@ -19,40 +19,38 @@ class EntityCache:
         self.self_id = id
         self.self_bot = bot
         if hash:
-            self.hash_map[id] = Entity(EntityType.BOT if bot else EntityType.USER, id, hash)
+            self.hash_map[id] = (hash, EntityType.BOT if bot else EntityType.USER)
 
     def get(self, id):
-        return self.hash_map.get(id)
+        try:
+            hash, ty = self.hash_map[id]
+            return Entity(ty, id, hash)
+        except KeyError:
+            return None
 
     def extend(self, users, chats):
         # See https://core.telegram.org/api/min for "issues" with "min constructors".
         self.hash_map.update(
-            (u.id, Entity(EntityType.BOT if u.bot else EntityType.USER, u.id, u.access_hash))
+            (u.id, (
+                u.access_hash,
+                EntityType.BOT if u.bot else EntityType.USER,
+            ))
             for u in users
             if getattr(u, 'access_hash', None) and not u.min
         )
         self.hash_map.update(
-            (c.id, Entity(
-                    (
-                        EntityType.MEGAGROUP
-                        if c.megagroup
-                        else (EntityType.GIGAGROUP if getattr(c, "gigagroup", None) else EntityType.CHANNEL)
-                    ),
-                    c.id,
-                    c.access_hash,
+            (c.id, (
+                c.access_hash,
+                EntityType.MEGAGROUP if c.megagroup else (
+                    EntityType.GIGAGROUP if getattr(c, 'gigagroup', None) else EntityType.CHANNEL
+                ),
             ))
             for c in chats
             if getattr(c, 'access_hash', None) and not getattr(c, 'min', None)
         )
 
-    def get_all_entities(self):
-        entities = (v for v in self.hash_map.values() if not v.retained)
-        for entity in entities:
-            entity.retained = True
-        return entities
-
     def put(self, entity):
-        self.hash_map[entity.id] = entity
+        self.hash_map[entity.id] = (entity.hash, entity.ty)
 
     def retain(self, filter):
         self.hash_map = {k: v for k, v in self.hash_map.items() if filter(k)}
