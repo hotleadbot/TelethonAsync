@@ -567,20 +567,20 @@ class UpdateMethods:
                     await conv._check_custom(built)
 
         for builder, callback in self._event_builders:
+            event = built[type(builder)]
+            if not event:
+                continue
+
+            if not builder.resolved:
+                await builder.resolve(self)
+
+            filter = builder.filter(event)
+            if inspect.isawaitable(filter):
+                filter = await filter
+            if not filter:
+                continue
+
             try:
-                event = built[type(builder)]
-                if not event:
-                    continue
-
-                if not builder.resolved:
-                    await builder.resolve(self)
-
-                filter = builder.filter(event)
-                if inspect.isawaitable(filter):
-                    filter = await filter
-                if not filter:
-                    continue
-
                 await callback(event)
             except errors.AlreadyInConversationError:
                 name = getattr(callback, '__name__', repr(callback))
