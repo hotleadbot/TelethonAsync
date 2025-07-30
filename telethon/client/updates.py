@@ -339,7 +339,7 @@ class UpdateMethods:
                         self._log[__name__].info('Cannot get difference since the network is down: %s: %s', type(e).__name__, e)
                         await asyncio.sleep(5)
                         continue
-                    updates, users, chats = self._message_box.apply_difference(diff, self._mb_entity_cache)
+                    updates, users, chats = self._message_box.apply_difference(diff)
                     if updates:
                         self._log[__name__].info('Got difference for account updates')
 
@@ -360,8 +360,7 @@ class UpdateMethods:
                         )
                         self._message_box.end_channel_difference(
                             get_diff,
-                            PrematureEndReason.TEMPORARY_SERVER_ISSUES,
-                            self._mb_entity_cache
+                            PrematureEndReason.TEMPORARY_SERVER_ISSUES
                         )
                         if was_once_logged_in:
                             self._updates_error = e
@@ -375,8 +374,7 @@ class UpdateMethods:
                         )
                         self._message_box.end_channel_difference(
                             get_diff,
-                            PrematureEndReason.TEMPORARY_SERVER_ISSUES,
-                            self._mb_entity_cache
+                            PrematureEndReason.TEMPORARY_SERVER_ISSUES
                         )
                         self._updates_error = e
                         await self.disconnect()
@@ -412,8 +410,7 @@ class UpdateMethods:
                         )
                         self._message_box.end_channel_difference(
                             get_diff,
-                            PrematureEndReason.TEMPORARY_SERVER_ISSUES,
-                            self._mb_entity_cache
+                            PrematureEndReason.TEMPORARY_SERVER_ISSUES
                         )
                         continue
                     except (errors.ChannelPrivateError, errors.ChannelInvalidError):
@@ -426,8 +423,7 @@ class UpdateMethods:
                         )
                         self._message_box.end_channel_difference(
                             get_diff,
-                            PrematureEndReason.BANNED,
-                            self._mb_entity_cache
+                            PrematureEndReason.BANNED
                         )
                         continue
                     except OSError as e:
@@ -438,7 +434,7 @@ class UpdateMethods:
                         await asyncio.sleep(5)
                         continue
 
-                    updates, users, chats = self._message_box.apply_channel_difference(get_diff, diff, self._mb_entity_cache)
+                    updates, users, chats = self._message_box.apply_channel_difference(get_diff, diff)
                     if updates:
                         self._log[__name__].info('Got difference for channel %d updates', get_diff.channel.channel_id)
 
@@ -460,7 +456,7 @@ class UpdateMethods:
 
                 processed = []
                 try:
-                    users, chats = self._message_box.process_updates(updates, self._mb_entity_cache, processed)
+                    users, chats = self._message_box.process_updates(updates, processed)
                 except GapError:
                     continue  # get(_channel)_difference will start returning requests
 

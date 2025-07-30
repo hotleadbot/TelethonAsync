@@ -16,12 +16,10 @@ While there are entries for which their difference must be fetched,
 [`MessageBox::check_deadlines`] will always return [`Instant::now`], since "now" is the time
 to get the difference.
 """
-import asyncio
 import datetime
 import time
 import logging
 from enum import Enum
-from .session import SessionState, ChannelState
 from ..tl import types as tl, functions as fn
 from ..helpers import get_running_loop
 
@@ -405,7 +403,6 @@ class MessageBox:
     def process_updates(
         self,
         updates,
-        chat_hashes,
         result,  # out list of updates; returns list of user, chat, or raise if gap
     ):
 
@@ -627,7 +624,6 @@ class MessageBox:
     def apply_difference(
         self,
         diff,
-        chat_hashes,
     ):
         if __debug__:
             self._trace('Applying account difference %s', diff)
@@ -642,12 +638,10 @@ class MessageBox:
             result = [], [], []
         elif isinstance(diff, tl.updates.Difference):
             finish = True
-            chat_hashes.extend(diff)
-            result = self.apply_difference_type(diff, chat_hashes)
+            result = self.apply_difference_type(diff)
         elif isinstance(diff, tl.updates.DifferenceSlice):
             finish = False
-            chat_hashes.extend(diff)
-            result = self.apply_difference_type(diff, chat_hashes)
+            result = self.apply_difference_type(diff)
         elif isinstance(diff, tl.updates.DifferenceTooLong):
             finish = True
             self.map[ENTRY_ACCOUNT].pts = diff.pts  # the deadline will be reset once the diff ends
@@ -671,7 +665,6 @@ class MessageBox:
     def apply_difference_type(
         self,
         diff,
-        chat_hashes,
     ):
         state = getattr(diff, 'intermediate_state', None) or diff.state
         self.set_state(state, reset=False)
@@ -685,7 +678,7 @@ class MessageBox:
             chats=diff.chats,
             date=epoch(),
             seq=NO_SEQ,  # this way date is not used
-        ), chat_hashes, updates)
+        ), updates)
 
         updates.extend(tl.UpdateNewMessage(
             message=m,
@@ -758,7 +751,6 @@ class MessageBox:
         self,
         request,
         diff,
-        chat_hashes,
     ):
         entry = request.channel.channel_id
         if __debug__:
@@ -774,7 +766,6 @@ class MessageBox:
         elif isinstance(diff, tl.updates.ChannelDifferenceTooLong):
             assert diff.final
             self.map[entry].pts = diff.dialog.pts
-            chat_hashes.extend(diff)
             self.reset_channel_deadline(entry, diff.timeout)
             # This `diff` has the "latest messages and corresponding chats", but it would
             # be strange to give the user only partial changes of these when they would
@@ -785,7 +776,6 @@ class MessageBox:
                 self.end_get_diff(entry)
 
             self.map[entry].pts = diff.pts
-            chat_hashes.extend(diff)
 
             updates = []
             self.process_updates(tl.Updates(
@@ -794,7 +784,7 @@ class MessageBox:
                 chats=diff.chats,
                 date=epoch(),
                 seq=NO_SEQ,  # this way date is not used
-            ), chat_hashes, updates)
+            ), updates)
 
             updates.extend(tl.UpdateNewChannelMessage(
                 message=m,
@@ -805,7 +795,7 @@ class MessageBox:
 
             return updates, diff.users, diff.chats
 
-    def end_channel_difference(self, request, reason: PrematureEndReason, chat_hashes):
+    def end_channel_difference(self, request, reason: PrematureEndReason):
         entry = request.channel.channel_id
         if __debug__:
             self._trace('Ending channel difference for %r because %s', entry, reason)
