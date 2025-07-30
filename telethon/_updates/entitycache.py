@@ -49,7 +49,7 @@ class EntityCache:
             if getattr(e, 'access_hash', None) and not getattr(e, 'min', None):
                 _, peer_type = utils.resolve_id(e.id)
                 key = e.id
-                if peer_type == types.PeerUser:
+                if isinstance(e, types.User):
                     entity_type = EntityType.BOT if e.bot else EntityType.USER
                 else:
                     entity_type = EntityType.MEGAGROUP if e.megagroup else (
