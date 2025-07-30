@@ -474,8 +474,8 @@ class UpdateMethods:
             await self.disconnect()
 
     async def _preprocess_updates(self, updates, users, chats):
-        self._mb_entity_cache.extend(users, chats)
-        await utils.maybe_async(self.session.process_entities(types.contacts.ResolvedPeer(None, users, chats)))
+        updated_entities = self._mb_entity_cache.extend(types.contacts.ResolvedPeer(None, users, chats))
+        await utils.maybe_async(self.session.process_entities(updated_entities))
         entities = {utils.get_peer_id(x): x
                     for x in itertools.chain(users, chats)}
         for u in updates:

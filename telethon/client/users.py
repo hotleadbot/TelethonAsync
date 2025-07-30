@@ -80,7 +80,8 @@ class UserMethods:
                             exceptions.append(e)
                             results.append(None)
                             continue
-                        await utils.maybe_async(self.session.process_entities(result))
+                        updated_entities = self._mb_entity_cache.extend(result)
+                        await utils.maybe_async(self.session.process_entities(updated_entities))
                         exceptions.append(None)
                         results.append(result)
                         request_index += 1
@@ -90,7 +91,8 @@ class UserMethods:
                         return results
                 else:
                     result = await future
-                    await utils.maybe_async(self.session.process_entities(result))
+                    updated_entities = self._mb_entity_cache.extend(result)
+                    await utils.maybe_async(self.session.process_entities(updated_entities))
                     return result
             except (errors.ServerError, errors.RpcCallFailError,
                     errors.RpcMcgetFailError, errors.InterdcCallErrorError,
