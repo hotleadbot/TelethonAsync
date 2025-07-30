@@ -47,7 +47,6 @@ class EntityCache:
         updated_entities = []
         for e in entities:
             if getattr(e, 'access_hash', None) and not getattr(e, 'min', None):
-                _, peer_type = utils.resolve_id(e.id)
                 key = e.id
                 if isinstance(e, types.User):
                     entity_type = EntityType.BOT if e.bot else EntityType.USER
