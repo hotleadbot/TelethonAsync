@@ -642,11 +642,11 @@ class MessageBox:
             result = [], [], []
         elif isinstance(diff, tl.updates.Difference):
             finish = True
-            chat_hashes.extend(diff.users, diff.chats)
+            chat_hashes.extend(diff)
             result = self.apply_difference_type(diff, chat_hashes)
         elif isinstance(diff, tl.updates.DifferenceSlice):
             finish = False
-            chat_hashes.extend(diff.users, diff.chats)
+            chat_hashes.extend(diff)
             result = self.apply_difference_type(diff, chat_hashes)
         elif isinstance(diff, tl.updates.DifferenceTooLong):
             finish = True
@@ -774,7 +774,7 @@ class MessageBox:
         elif isinstance(diff, tl.updates.ChannelDifferenceTooLong):
             assert diff.final
             self.map[entry].pts = diff.dialog.pts
-            chat_hashes.extend(diff.users, diff.chats)
+            chat_hashes.extend(diff)
             self.reset_channel_deadline(entry, diff.timeout)
             # This `diff` has the "latest messages and corresponding chats", but it would
             # be strange to give the user only partial changes of these when they would
@@ -785,7 +785,7 @@ class MessageBox:
                 self.end_get_diff(entry)
 
             self.map[entry].pts = diff.pts
-            chat_hashes.extend(diff.users, diff.chats)
+            chat_hashes.extend(diff)
 
             updates = []
             self.process_updates(tl.Updates(
