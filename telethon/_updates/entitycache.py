@@ -1,5 +1,5 @@
-from .session import EntityType, Entity
-
+from .session import Entity, EntityType
+from .. import types, utils
 
 _sentinel = object()
 
@@ -28,26 +28,41 @@ class EntityCache:
         except KeyError:
             return None
 
-    def extend(self, users, chats):
+    def extend(self, tlo):
         # See https://core.telegram.org/api/min for "issues" with "min constructors".
-        self.hash_map.update(
-            (u.id, (
-                u.access_hash,
-                EntityType.BOT if u.bot else EntityType.USER,
-            ))
-            for u in users
-            if getattr(u, 'access_hash', None) and not u.min
-        )
-        self.hash_map.update(
-            (c.id, (
-                c.access_hash,
-                EntityType.MEGAGROUP if c.megagroup else (
-                    EntityType.GIGAGROUP if getattr(c, 'gigagroup', None) else EntityType.CHANNEL
-                ),
-            ))
-            for c in chats
-            if getattr(c, 'access_hash', None) and not getattr(c, 'min', None)
-        )
+        if not isinstance(tlo, types.TLObject) and utils.is_list_like(tlo):
+            # This may be a list of users already for instance
+            entities = tlo
+        else:
+            entities = []
+            if hasattr(tlo, 'user'):
+                entities.append(tlo.user)
+            if hasattr(tlo, 'chat'):
+                entities.append(tlo.chat)
+            if hasattr(tlo, 'chats') and utils.is_list_like(tlo.chats):
+                entities.extend(tlo.chats)
+            if hasattr(tlo, 'users') and utils.is_list_like(tlo.users):
+                entities.extend(tlo.users)
+
+        updated_entities = []
+        for e in entities:
+            if getattr(e, 'access_hash', None) and not getattr(e, 'min', None):
+                _, peer_type = utils.resolve_id(e.id)
+                key = e.id
+                if isinstance(e, types.User):
+                    entity_type = EntityType.BOT if e.bot else EntityType.USER
+                else:
+                    entity_type = EntityType.MEGAGROUP if e.megagroup else (
+                        EntityType.GIGAGROUP if getattr(e, 'gigagroup', None) else EntityType.CHANNEL
+                    )
+                value = (
+                    e.access_hash,
+                    entity_type,
+                )
+                if self.hash_map.get(key) != value:
+                    self.hash_map[key] = value
+                    updated_entities.append(e)
+        return updated_entities
 
     def put(self, entity):
         self.hash_map[entity.id] = (entity.hash, entity.ty)
