@@ -312,7 +312,7 @@ class MTProtoSender:
             return False
 
     async def _disconnect(self, error=None):
-        if self._connection is None:
+        if self._connection is None or not self._connection._connected:
             self._log.info('Not disconnecting (already have no connection)')
             return
 
@@ -337,7 +337,7 @@ class MTProtoSender:
             )
 
             self._log.info('Disconnection from %s complete!', self._connection)
-            self._connection = None
+            # self._connection = None
 
         if self._disconnected and not self._disconnected.done():
             if error:
