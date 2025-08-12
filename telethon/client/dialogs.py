@@ -58,7 +58,7 @@ class _DialogsIter(RequestIter):
                     for x in itertools.chain(r.users, r.chats)
                     if not isinstance(x, (types.UserEmpty, types.ChatEmpty))}
 
-        self.client._mb_entity_cache.extend(r.users, r.chats)
+        self.client._mb_entity_cache.extend(r)
 
         messages = {}
         for m in r.messages:
