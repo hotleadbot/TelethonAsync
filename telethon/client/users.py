@@ -223,6 +223,8 @@ class UserMethods:
                 # Any request that requires authorization will work
                 await self(functions.updates.GetStateRequest())
                 self._authorized = True
+            except errors.ServerError:
+                raise
             except errors.RPCError:
                 self._authorized = False
 
