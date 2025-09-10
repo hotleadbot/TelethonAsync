@@ -343,7 +343,7 @@ class UpdateMethods:
                     if updates:
                         self._log[__name__].info('Got difference for account updates')
 
-                    _preprocess_updates = await utils.maybe_async(self._preprocess_updates(updates, users, chats))
+                    _preprocess_updates = await self._preprocess_updates(updates, users, chats)
                     updates_to_dispatch.extend(_preprocess_updates)
                     continue
 
@@ -438,7 +438,7 @@ class UpdateMethods:
                     if updates:
                         self._log[__name__].info('Got difference for channel %d updates', get_diff.channel.channel_id)
 
-                    _preprocess_updates = await utils.maybe_async(self._preprocess_updates(updates, users, chats))
+                    _preprocess_updates = await self._preprocess_updates(updates, users, chats)
                     updates_to_dispatch.extend(_preprocess_updates)
                     continue
 
@@ -460,7 +460,7 @@ class UpdateMethods:
                 except GapError:
                     continue  # get(_channel)_difference will start returning requests
 
-                _preprocess_updates = await utils.maybe_async(self._preprocess_updates(processed, users, chats))
+                _preprocess_updates = await self._preprocess_updates(processed, users, chats)
                 updates_to_dispatch.extend(_preprocess_updates)
         except asyncio.CancelledError:
             pass
