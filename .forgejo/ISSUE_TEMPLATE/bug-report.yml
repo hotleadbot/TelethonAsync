@@ -30,7 +30,7 @@ body:
     id: actual-behavior
     attributes:
       label: Actual behavior
-      description: Explain what actually happens.
+      description: Explain what actually happens. Use your own words. **Do not use AI to write the issue.**
       placeholder: |
         "This happened instead..."
     validations:
@@ -92,5 +92,5 @@ body:
           required: true
         - label: I have searched for this issue before posting it and there isn't an open duplicate.
           required: true
-        - label: I ran `pip install -U https://github.com/LonamiWebs/Telethon/archive/v1.zip` and triggered the bug in the latest version.
+        - label: I ran `pip install -U https://codeberg.org/Lonami/Telethon/archive/v1.zip` and triggered the bug in the latest version.
           required: true
