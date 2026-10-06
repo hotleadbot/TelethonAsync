@@ -50,8 +50,10 @@ class EntityCache:
                 key = e.id
                 if isinstance(e, types.User):
                     entity_type = EntityType.BOT if e.bot else EntityType.USER
+                elif isinstance(e, types.Community):
+                    entity_type = EntityType.COMMUNITY
                 else:
-                    entity_type = EntityType.MEGAGROUP if e.megagroup else (
+                    entity_type = EntityType.MEGAGROUP if getattr(e, 'megagroup', None) else (
                         EntityType.GIGAGROUP if getattr(e, 'gigagroup', None) else EntityType.CHANNEL
                     )
                 value = (
